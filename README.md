@@ -1,5 +1,5 @@
 # synodic
-## synodic 是个致力解决高并发相关的工具集合
+## synodic 是个致力解决高并发领域相关问题的工具集合
 
 ### 计划包含：
 - 简化版的ringbuffer

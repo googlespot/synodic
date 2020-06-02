@@ -1,7 +1,6 @@
 package org.galaxy.synodic.affine;
 
 
-import com.lmax.disruptor.EventHandler;
 import org.galaxy.synodic.JdkUnsafe;
 import org.galaxy.synodic.RingQueue;
 import sun.misc.Contended;

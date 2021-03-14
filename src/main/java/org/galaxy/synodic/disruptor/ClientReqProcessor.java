@@ -7,11 +7,12 @@ import org.galaxy.synodic.affine.ReqEvent;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientReqProcessor {
-    private RingBuffer<ReqEvent>                  ringBuffer;
-    private ConcurrentHashMap<Long, EventSession> sessionMap;
+    private RingBuffer<ReqEvent<?>>                  ringBuffer;
+    private ConcurrentHashMap<Long, EventSession<?>> sessionMap;
 
-    public ClientReqProcessor(RingBuffer<ReqEvent> ringBuffer) {
+    public ClientReqProcessor(RingBuffer<ReqEvent<?>> ringBuffer, ConcurrentHashMap<Long, EventSession<?>> sessionMap) {
         this.ringBuffer = ringBuffer;
+        this.sessionMap = sessionMap;
     }
 
     public void handleReq(ClientRequest reqMsg) {
@@ -27,6 +28,7 @@ public class ClientReqProcessor {
         long sequence = ringBuffer.next();
         try {
             ReqEvent event = ringBuffer.get(sequence);
+            event.setEventData(reqMsg.getMsg());
             event.setSession(session);
         } finally {
             ringBuffer.publish(sequence);

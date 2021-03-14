@@ -7,12 +7,14 @@ import sun.misc.Contended;
 import sun.misc.Unsafe;
 
 
-public class EventSession {
+public class EventSession<T> {
     private final    RingQueue<ReqEvent> queue;
     @Contended
     private volatile ReqEventHandler     handler;
     @Contended
     private volatile long                tryInCounter;
+
+    private T attachData;
 
     public EventSession(int queueLength) {
         int queueCapacity = queueLength < 1 ? 1 : Math.min(queueLength, 1024);
@@ -47,6 +49,13 @@ public class EventSession {
         return handler;
     }
 
+    public T getAttachData() {
+        return attachData;
+    }
+
+    public void setAttachData(T attachData) {
+        this.attachData = attachData;
+    }
 
     private static final long   I_OFFSET;
     private static final long   H_OFFSET;

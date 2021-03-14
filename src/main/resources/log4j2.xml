@@ -3,7 +3,7 @@
     <appenders>
         <!--输出到控制台-->
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss.sss} [%logger{36}] %-5level - %msg%n"/>
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss.sss} [%logger{36}] - [%thread{36}] %-5level - %msg%n"/>
             <!--<ThreSholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY"/>-->
         </Console>
         <!--输出到日志文件中-->

@@ -12,16 +12,16 @@ public class ReqEventHandler {
 
     private final RateLimiter limiter = RateLimiter.create(1000);
 
-    private final Consumer<ReqEvent> eventHandler;
+    private final Consumer<ReqEvent<?>> eventHandler;
 
     //todo exception handler
 
-    public ReqEventHandler(Consumer<ReqEvent> eventHandler) {
+    public ReqEventHandler(Consumer<ReqEvent<?>> eventHandler) {
         this.eventHandler = eventHandler;
     }
 
-    public void onEvent(ReqEvent event) {
-        EventSession session = event.getSession();
+    public void onEvent(ReqEvent<?> event) {
+        EventSession<?> session = event.getSession();
 
         for (; ; ) {
             if (session.assign(this)) {

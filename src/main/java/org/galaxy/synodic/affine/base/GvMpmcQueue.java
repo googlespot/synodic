@@ -16,7 +16,7 @@ public class GvMpmcQueue<E> extends MpmcArrayQueue<E> implements GvQueue<E> {
     private volatile long          version;
     private final    Comparable<?> key;
 
-    public GvMpmcQueue(Object key, int capacity) {
+    public GvMpmcQueue(Comparable<?> key, int capacity) {
         super(capacity);
         this.key = key;
     }

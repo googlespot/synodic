@@ -6,8 +6,8 @@ import org.galaxy.synodic.affine.base.GvMpmcQueue;
 import org.galaxy.synodic.affine.base.GvQueue;
 import org.galaxy.synodic.affine.base.GvQueueFactory;
 
-import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
@@ -19,32 +19,36 @@ public class SequentialExecutor {
     private final    Map<Comparable<?>, GvQueue<Runnable>>     taskMapQueue;
     private final    ThreadPoolExecutor                        executor;
     private volatile OverFlowHandler                           overFlowHandler;
+    private          ExceptionHandler                          exceptionHandler;
     private          Function<GvQueue<Runnable>, GroupingTask> generate;
     private          boolean                                   autoCreateGroup;
     private          GvQueueFactory                            queueFactory;
     private          int                                       batchSizePerExecute;
-    private          ExceptionHandler                          exceptionHandler;
 
 
-    public SequentialExecutor(Map<Comparable<?>, GvQueue<Runnable>> taskMapQueue, ThreadPoolExecutor executor, ExceptionHandler exceptionHandler, GvQueueFactory queueFactory, int batchSizePerExecute) {
+    public SequentialExecutor(Map<Comparable<?>, GvQueue<Runnable>> taskMapQueue, ThreadPoolExecutor executor, OverFlowHandler overFlowHandler, ExceptionHandler exceptionHandler, boolean autoCreateGroup, GvQueueFactory queueFactory, int batchSizePerExecute) {
+
         this.taskMapQueue = taskMapQueue;
         this.executor = executor;
-        this.overFlowHandler = OverFlowHandler.DiscardOldest;
-        this.batchSizePerExecute = batchSizePerExecute;
+        this.overFlowHandler = overFlowHandler;
+        this.exceptionHandler = exceptionHandler;
+        this.autoCreateGroup = autoCreateGroup;
+        this.queueFactory = queueFactory;
         if (batchSizePerExecute == 0) {
             generate = StickTask::new;
         } else {
             generate = LimitedTask::new;
         }
+        this.batchSizePerExecute = batchSizePerExecute;
     }
 
-    public SequentialExecutor(Map<Comparable<?>, GvQueue<Runnable>> taskMapQueue, ThreadPoolExecutor executor,int groupQueueCapacity) {
-       this(taskMapQueue,executor,null,new GvQueueFactory(){
-           @Override
-           public <E> GvQueue<E> createGvQueue(Comparable<?> key) {
-               return new GvMpmcQueue<>(key,groupQueueCapacity);
-           }
-       },0);
+    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity) {
+        this(new ConcurrentHashMap<>(), executor, OverFlowHandler.DiscardOldest, null, true, new GvQueueFactory() {
+            @Override
+            public <E> GvQueue<E> createGvQueue(Comparable<?> key) {
+                return new GvMpmcQueue<>(key, groupQueueCapacity);
+            }
+        }, 0);
     }
 
     public void execute(Comparable<?> key, Runnable task) {
@@ -155,6 +159,10 @@ public class SequentialExecutor {
             }
             return false;
         }
+    }
+
+    private class LimitedTask2 {
+        // 可以先放弃然后根据队列是否为空尝试加入调度队列
     }
 
     public interface OverFlowHandler {

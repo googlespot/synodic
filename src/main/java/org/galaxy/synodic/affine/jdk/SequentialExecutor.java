@@ -51,6 +51,15 @@ public class SequentialExecutor {
         }, 0);
     }
 
+    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity, int batchSizePerExecute) {
+        this(new ConcurrentHashMap<>(), executor, OverFlowHandler.DiscardOldest, null, true, new GvQueueFactory() {
+            @Override
+            public <E> GvQueue<E> createGvQueue(Comparable<?> key) {
+                return new GvMpmcQueue<>(key, 1024);
+            }
+        }, batchSizePerExecute);
+    }
+
     public void execute(Comparable<?> key, Runnable task) {
         // check shutdown 参考jdk
         GvQueue<Runnable> gvQueue = getOrCreateGroup(key);
@@ -88,8 +97,8 @@ public class SequentialExecutor {
         return partition;
     }
 
-    public void createGroupIfAbsent(Comparable<?> key) {
-
+    public GvQueue<Runnable> putGroupIfAbsent(Comparable<?> key, GvQueue<Runnable> gvQueue) {
+        return this.taskMapQueue.putIfAbsent(key, gvQueue);
     }
 
     public void shutdownNow() {

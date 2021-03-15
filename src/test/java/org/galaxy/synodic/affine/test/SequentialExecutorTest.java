@@ -25,7 +25,7 @@ public class SequentialExecutorTest {
                 return new Thread(r, "exec-" + gen.incrementAndGet());
             }
         });
-        SequentialExecutor sequentialExecutor = new SequentialExecutor(executor, 128, 20);
+        SequentialExecutor sequentialExecutor = new SequentialExecutor(executor, 128);
 
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(2, 5, 1, TimeUnit.MINUTES, new DisruptorBlockingQueue<>(1024));
         int n = 3;

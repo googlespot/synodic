@@ -1,5 +1,6 @@
 package org.galaxy.synodic.affine.jdk;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.galaxy.synodic.affine.base.GroupingTask;
 import org.galaxy.synodic.affine.base.GvMpmcQueue;
@@ -34,7 +35,7 @@ public class SequentialExecutor {
         this.exceptionHandler = exceptionHandler;
         this.autoCreateGroup = autoCreateGroup;
         this.queueFactory = queueFactory;
-        if (batchSizePerExecute == 0) {
+        if (batchSizePerExecute <= 0) {
             generate = StickTask::new;
         } else {
             generate = LimitedTask::new;
@@ -42,42 +43,40 @@ public class SequentialExecutor {
         this.batchSizePerExecute = batchSizePerExecute;
     }
 
-    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity) {
+    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity, int batchSizePerExecute) {
         this(new ConcurrentHashMap<>(), executor, OverFlowHandler.DiscardOldest, null, true, new GvQueueFactory() {
             @Override
             public <E> GvQueue<E> createGvQueue(Comparable<?> key) {
                 return new GvMpmcQueue<>(key, groupQueueCapacity);
             }
-        }, 0);
-    }
-
-    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity, int batchSizePerExecute) {
-        this(new ConcurrentHashMap<>(), executor, OverFlowHandler.DiscardOldest, null, true, new GvQueueFactory() {
-            @Override
-            public <E> GvQueue<E> createGvQueue(Comparable<?> key) {
-                return new GvMpmcQueue<>(key, 1024);
-            }
         }, batchSizePerExecute);
     }
 
-    public void execute(Comparable<?> key, Runnable task) {
-        // check shutdown 参考jdk
+    public SequentialExecutor(ThreadPoolExecutor executor, int groupQueueCapacity) {
+        this(executor, groupQueueCapacity, 0);
+    }
+
+    public void execute(@NonNull Comparable<?> key, @NonNull Runnable task) {
+        if (executor.isShutdown()) {
+            overFlowHandler.onOverFlow(key, task, this);
+        }
         GvQueue<Runnable> gvQueue = getOrCreateGroup(key);
         long oldFlag = gvQueue.getVersion();
         boolean added = gvQueue.offer(task);
-        if (!added) {
-            overFlowHandler.onOverFlow(key, task, this);
-        }
-        for (; ; oldFlag = gvQueue.getVersion()) {
-            if ((oldFlag & IN) == OUT && gvQueue.casVersion(oldFlag, oldFlag + ENTER)) {
-                // 相比自己管理线程,这里每个任务多了一次new操作,另外线程池的线程数控制,比自己管理时都要多一次的volatile读开销
-                // 这里的拒绝策略也比较受限，因为前面已经进入分区队列了，如果这里不能提交成功就会产生死消息,所以可考虑参考jdk再拉回来
-                // 另外这里可以考虑再加个旁路的补偿任务,用于处理这个分区队列被拒绝的情况
-                executor.execute(generate.apply(gvQueue));
-                break;
-            } else if ((oldFlag & IN) == IN && gvQueue.casVersion(oldFlag, oldFlag + UPDATE)) {
-                break;
+        if (added) {
+            for (; ; oldFlag = gvQueue.getVersion()) {
+                if ((oldFlag & IN) == OUT && gvQueue.casVersion(oldFlag, oldFlag + ENTER)) {
+                    // 相比自己管理线程,这里每个任务多了一次new操作,另外线程池的线程数控制,比自己管理时都要多一次的volatile读开销
+                    // 这里的拒绝策略也比较受限，因为前面已经进入分区队列了，如果这里不能提交成功就会产生死消息,所以可考虑参考jdk再拉回来
+                    // 另外这里可以考虑再加个旁路的补偿任务,用于处理这个分区队列被拒绝的情况
+                    executor.execute(generate.apply(gvQueue));
+                    break;
+                } else if ((oldFlag & IN) == IN && gvQueue.casVersion(oldFlag, oldFlag + UPDATE)) {
+                    break;
+                }
             }
+        } else {
+            overFlowHandler.onOverFlow(key, task, this);
         }
     }
 
@@ -101,8 +100,12 @@ public class SequentialExecutor {
         return this.taskMapQueue.putIfAbsent(key, gvQueue);
     }
 
-    public void shutdownNow() {
-        executor.shutdownNow();
+    public boolean isShutdown() {
+        return executor.isShutdown();
+    }
+
+    public void shutdown() {
+        executor.shutdown();
     }
 
     private class StickTask implements Runnable, GroupingTask {
@@ -179,9 +182,13 @@ public class SequentialExecutor {
 
         // 如果使用这种策略需要PvQueue支持多线程消费
         OverFlowHandler DiscardOldest = (key, task, executor) -> {
-            GvQueue<Runnable> partition = executor.taskMapQueue.get(key);
-            partition.poll();
-            executor.execute(key, task);
+            if (!executor.executor.isShutdown()) {
+                GvQueue<Runnable> partition = executor.taskMapQueue.get(key);
+                partition.poll();
+                executor.execute(key, task);
+            } else {
+                throw new RuntimeException("executor is shutdown");
+            }
         };
     }
 

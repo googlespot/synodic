@@ -48,6 +48,21 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
 
     }
 
+    public E getFirst() {
+        if (head != null) {
+            return head[1];
+        }
+        return null;
+    }
+
+    public E getLast() {
+        if (tail != null) {
+            int index = ((FirstNode) tail[0]).dataLength;
+            return tail[index];
+        }
+        return null;
+    }
+
 
     private E[] newChunk(E e) {
         Object[] chunk = new Object[capacityPerChunk + 1];

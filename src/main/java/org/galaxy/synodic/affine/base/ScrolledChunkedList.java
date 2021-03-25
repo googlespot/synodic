@@ -30,18 +30,18 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
             chunkSize = 1;
             return;
         }
-        FirstNode firstOfTail = (FirstNode) tail[0];
-        if (firstOfTail.dataLength < capacityPerChunk) {
-            tail[++firstOfTail.dataLength] = e;
+        InfoNode infoOfTail = (InfoNode) tail[0];
+        if (infoOfTail.dataLength < capacityPerChunk) {
+            tail[++infoOfTail.dataLength] = e;
             dataLength++;
         } else {
             E[] newTail = newChunk(e);
-            firstOfTail.next = newTail;
+            infoOfTail.next = newTail;
             tail = newTail;
             if (chunkSize == maxChunkSize) {
-                FirstNode firstOfHead = (FirstNode) head[0];
-                head = firstOfHead.next;
-                firstOfHead.next = null; //help gc
+                InfoNode infoOfHead = (InfoNode) head[0];
+                head = infoOfHead.next;
+                infoOfHead.next = null; //help gc
                 dataLength = dataLength + 1 - capacityPerChunk;
             } else {
                 chunkSize++;
@@ -60,7 +60,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
 
     public E getLast() {
         if (tail != null) {
-            int index = ((FirstNode) tail[0]).dataLength;
+            int index = ((InfoNode) tail[0]).dataLength;
             return tail[index];
         }
         return null;
@@ -68,7 +68,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
 
     public E replaceLast(E e) {
         if (tail != null) {
-            int index = ((FirstNode) tail[0]).dataLength;
+            int index = ((InfoNode) tail[0]).dataLength;
             E old = tail[index];
             tail[index] = e;
             return old;
@@ -81,9 +81,9 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
 
     private E[] newChunk(E e) {
         Object[] chunk = new Object[capacityPerChunk + 1];
-        FirstNode first = new FirstNode();
-        first.dataLength = 1;
-        chunk[0] = first;
+        InfoNode info = new InfoNode();
+        info.dataLength = 1;
+        chunk[0] = info;
         chunk[1] = e;
         return (E[]) chunk;
     }
@@ -126,13 +126,13 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
         private void begin(E[] begin) {
             currentChunk = begin;
             posOfChunk = 0;
-            FirstNode firstNode = (FirstNode) currentChunk[0];
-            chunkDataLength = firstNode.dataLength;
-            next = firstNode.next;
+            InfoNode infoNode = (InfoNode) currentChunk[0];
+            chunkDataLength = infoNode.dataLength;
+            next = infoNode.next;
         }
     }
 
-    private class FirstNode {
+    private class InfoNode {
         int dataLength;
         E[] next;
     }

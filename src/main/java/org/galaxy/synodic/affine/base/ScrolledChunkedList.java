@@ -39,7 +39,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
                 FirstNode firstOfHead = (FirstNode) head[0];
                 head = firstOfHead.next;
                 firstOfHead.next = null; //help gc
-                dataLength = capacityPerChunk * (chunkSize - 1) + 1;
+                dataLength = dataLength + 1 - capacityPerChunk;
             } else {
                 chunkSize++;
                 dataLength++;

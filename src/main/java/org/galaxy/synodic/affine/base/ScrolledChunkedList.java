@@ -82,7 +82,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
         return dataLength;
     }
 
-    class Iter implements Iterator<E> {
+    private class Iter implements Iterator<E> {
         E[] currentChunk;
         int posOfChunk;
         int chunkDataLength;
@@ -117,9 +117,9 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
         }
     }
 
-    class FirstNode {
+    private class FirstNode {
         int dataLength;
-        private E[] next;
+        E[] next;
     }
 
     public static void main(String[] args) {
@@ -130,7 +130,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
             for (String s : scl) {
                 System.out.print(s + "\t");
             }
-            System.out.println("count=" + scl.getDataLength());
+            System.out.println("\t last=" + scl.getLast() + "\tcount=" + scl.getDataLength());
         }
         for (String s : scl) {
             System.out.println(s);

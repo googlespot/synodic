@@ -15,6 +15,9 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
     private       int dataLength;
 
     public ScrolledChunkedList(int capacityPerChunk, int maxChunkSize) {
+        if (capacityPerChunk < 2 || maxChunkSize < 2) {
+            throw new IllegalArgumentException();
+        }
         this.capacityPerChunk = capacityPerChunk;
         this.maxChunkSize = maxChunkSize;
     }

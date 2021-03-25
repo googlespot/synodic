@@ -41,7 +41,8 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
             if (chunkSize == maxChunkSize) {
                 InfoNode infoOfHead = (InfoNode) head[0];
                 head = infoOfHead.next;
-                infoOfHead.next = null; //help gc
+
+                //  infoOfHead.next = null; //help gc
                 dataLength = dataLength + 1 - capacityPerChunk;
             } else {
                 chunkSize++;
@@ -78,7 +79,6 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
         }
     }
 
-
     private E[] newChunk(E e) {
         Object[] chunk = new Object[capacityPerChunk + 1];
         InfoNode info = new InfoNode();
@@ -93,18 +93,48 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
         return this.new Iter(head);
     }
 
+    /**
+     *
+     */
+    public Iterator<E> iterator(int last) {
+        int len;
+        if (tail != null && last <= (len = ((InfoNode) tail[0]).dataLength)) {
+            int offset = len - last;
+            return this.new Iter(tail, offset);
+        }
+        Iter itr = this.new Iter(head);
+        int needSkip = itr.totalCount - last;
+        if (needSkip > 0) {
+            itr.skip(needSkip);
+        }
+        return itr;
+    }
+
     public int getDataLength() {
         return dataLength;
     }
 
     private class Iter implements Iterator<E> {
+        final int totalCount;
         E[] currentChunk;
         int posOfChunk;
         int chunkDataLength;
         E[] next;
 
+        public Iter(E[] head, int pos) {
+            if (head == null) {
+                posOfChunk = 1;
+                chunkDataLength = 0;
+                totalCount = 0;
+            } else {
+                totalCount = dataLength;
+                begin(head, pos);
+
+            }
+        }
+
         public Iter(E[] head) {
-            begin(head);
+            this(head, 0);
         }
 
         @Override
@@ -117,15 +147,28 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
             if (posOfChunk < chunkDataLength) {
                 return currentChunk[++posOfChunk];
             } else if (next != null) {
-                begin(next);
+                begin(next, 0);
                 return currentChunk[++posOfChunk];
             }
             throw new IllegalStateException();
         }
 
-        private void begin(E[] begin) {
+        public void skip(int count) {
+            int remain = count;
+            while (remain >= chunkDataLength) {
+                if (next != null) {
+                    remain = remain - chunkDataLength;
+                    begin(next, 0);
+                } else {
+                    throw new IllegalArgumentException();
+                }
+            }
+            posOfChunk = remain;
+        }
+
+        private void begin(E[] begin, int pos) {
             currentChunk = begin;
-            posOfChunk = 0;
+            posOfChunk = pos;
             InfoNode infoNode = (InfoNode) currentChunk[0];
             chunkDataLength = infoNode.dataLength;
             next = infoNode.next;
@@ -138,7 +181,7 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
     }
 
     public static void main(String[] args) {
-        ScrolledChunkedList<String> scl = new ScrolledChunkedList<>(8, 3);
+        ScrolledChunkedList<String> scl = new ScrolledChunkedList<>(6, 4);
 
         for (int i = 0; i < 100; i++) {
             scl.append(String.valueOf(i));
@@ -147,9 +190,12 @@ public class ScrolledChunkedList<E> implements Iterable<E> {
             }
             System.out.println("\t last=" + scl.getLast() + "\tcount=" + scl.getDataLength());
         }
-        for (String s : scl) {
-            System.out.println(s);
-        }
+//        for (String s : scl) {
+//            System.out.println(s);
+//        }
+
+        for (Iterator itr = scl.iterator(3); itr.hasNext(); )
+            System.out.println(itr.next());
 
     }
 

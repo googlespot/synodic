@@ -13,7 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <disruptor-version>3.4.2</disruptor-version>
-        <guava-version>28.2-jre</guava-version>
+        <guava-version>29.0-jre</guava-version>
         <collections4-version>4.4</collections4-version>
         <eclipse-collection-version>10.2.0</eclipse-collection-version>
     </properties>

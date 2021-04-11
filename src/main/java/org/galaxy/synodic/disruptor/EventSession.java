@@ -1,8 +1,8 @@
-package org.galaxy.synodic.affine;
+package org.galaxy.synodic.disruptor;
 
 
-import org.galaxy.synodic.JdkUnsafe;
-import org.galaxy.synodic.RingQueue;
+import org.galaxy.synodic.affine.collection.JdkUnsafe;
+import org.galaxy.synodic.affine.collection.RingQueue;
 import sun.misc.Contended;
 import sun.misc.Unsafe;
 

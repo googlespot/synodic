@@ -13,7 +13,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <disruptor-version>3.4.2</disruptor-version>
-        <guava-version>28.2-jre</guava-version>
+        <guava-version>[30.0-jre,)</guava-version>
         <collections4-version>4.4</collections4-version>
         <eclipse-collection-version>10.2.0</eclipse-collection-version>
     </properties>
@@ -56,6 +56,22 @@
         <!--            <artifactId>eclipse-collections</artifactId>-->
         <!--            <version>${eclipse-collection-version}</version>-->
         <!--        </dependency>-->
+
+        <!-- https://mvnrepository.com/artifact/net.lecousin/core -->
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>1.28</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>1.28</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

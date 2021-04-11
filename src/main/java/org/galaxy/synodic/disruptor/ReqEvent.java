@@ -1,4 +1,6 @@
-package org.galaxy.synodic.affine;
+package org.galaxy.synodic.disruptor;
+
+import org.galaxy.synodic.disruptor.EventSession;
 
 public class ReqEvent<T> {
     private volatile EventSession session;

@@ -1,4 +1,4 @@
-package org.galaxy.synodic.affine;
+package org.galaxy.synodic.disruptor;
 
 import com.google.common.util.concurrent.RateLimiter;
 

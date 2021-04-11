@@ -1,11 +1,9 @@
 package org.galaxy.synodic.affine.test;
 
-import com.conversantmedia.util.concurrent.DisruptorBlockingQueue;
 import com.google.common.util.concurrent.RateLimiter;
 import lombok.extern.slf4j.Slf4j;
-import org.galaxy.synodic.affine.jdk.SequentialExecutor;
+import org.galaxy.synodic.affine.executor.SequentialExecutor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

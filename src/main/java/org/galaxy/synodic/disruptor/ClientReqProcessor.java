@@ -1,8 +1,6 @@
 package org.galaxy.synodic.disruptor;
 
 import com.lmax.disruptor.RingBuffer;
-import org.galaxy.synodic.affine.EventSession;
-import org.galaxy.synodic.affine.ReqEvent;
 
 import java.util.concurrent.ConcurrentHashMap;
 

@@ -1,4 +1,4 @@
-package org.galaxy.synodic;
+package org.galaxy.synodic.affine.collection;
 
 import sun.misc.Unsafe;
 
